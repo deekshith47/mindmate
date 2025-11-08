@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { ExternalLinkIcon } from '../components/icons/Icons';
+import { LanguageContext } from '../App';
 
 type Category = 'All' | 'Crisis' | 'Articles' | 'Videos' | 'Podcasts';
 
@@ -18,16 +19,25 @@ const resources = [
 const categories: Category[] = ['All', 'Crisis', 'Articles', 'Videos', 'Podcasts'];
 
 const ResourcesPage: React.FC = () => {
+    const { t } = useContext(LanguageContext);
     const [activeCategory, setActiveCategory] = useState<Category>('All');
 
     const filteredResources = activeCategory === 'All'
         ? resources
         : resources.filter(r => r.category === activeCategory);
+        
+    const categoryKeys: Record<Category, string> = {
+        All: 'resources.categories.all',
+        Crisis: 'resources.categories.crisis',
+        Articles: 'resources.categories.articles',
+        Videos: 'resources.categories.videos',
+        Podcasts: 'resources.categories.podcasts',
+    };
 
     return (
         <div className="space-y-8">
-            <h1 className="text-4xl font-bold">Resources</h1>
-            <p className="text-gray-400">A curated list of helpful resources. If you are in crisis, please seek immediate help.</p>
+            <h1 className="text-4xl font-bold">{t('resources.title')}</h1>
+            <p className="text-gray-400">{t('resources.description')}</p>
 
             <div className="flex flex-wrap gap-2">
                 {categories.map(category => (
@@ -38,7 +48,7 @@ const ResourcesPage: React.FC = () => {
                             activeCategory === category ? 'bg-violet-600 text-white' : 'bg-gray-700 hover:bg-gray-600 text-gray-300'
                         }`}
                     >
-                        {category}
+                        {t(categoryKeys[category])}
                     </button>
                 ))}
             </div>
@@ -55,7 +65,7 @@ const ResourcesPage: React.FC = () => {
                         <div className="flex justify-between items-start">
                             <div>
                                 <span className={`text-xs font-bold uppercase tracking-wider ${resource.category === 'Crisis' ? 'text-red-400' : 'text-violet-400'}`}>
-                                    {resource.category}
+                                    {t(categoryKeys[resource.category as Category])}
                                 </span>
                                 <h3 className="text-lg font-bold text-white mt-1">{resource.title}</h3>
                             </div>

@@ -1,23 +1,16 @@
 import { createClient } from '@supabase/supabase-js';
 
-// IMPORTANT: Replace with your actual Supabase URL and Anon Key for production.
-// You can find these in your Supabase project settings.
-const supabaseUrl = 'https://app-id.supabase.co'.replace('app-id', '925728af-0358-42ae-8596-776676330d3b');
-// Using a public demo key.
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0';
+// Use environment variables if available, otherwise fall back to placeholders
+// to prevent the app from crashing if they are not set.
+const supabaseUrl = process.env.SUPABASE_URL || 'https://placeholder.supabase.co';
+const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || 'placeholderkey';
 
-if (!supabaseUrl || supabaseUrl.includes('app-id')) {
-    console.warn("Supabase URL is not configured. Data persistence will not work. Please add your credentials to services/supabaseClient.ts");
+if (supabaseUrl === 'https://placeholder.supabase.co') {
+  console.warn(
+    "Supabase credentials are not configured. The application will not function correctly without them. " +
+    "Please set SUPABASE_URL and SUPABASE_ANON_KEY in your environment variables."
+  );
 }
 
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-    auth: {
-        // Automatically refresh the session token
-        autoRefreshToken: true,
-        // Persist the session in local storage
-        persistSession: true,
-        // Detect when the session is restored from local storage
-        detectSessionInUrl: false,
-    },
-});
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);

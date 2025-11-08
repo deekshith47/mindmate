@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { Language } from '../types';
 
-// FIX: Define the SpeechRecognition interface to provide types for the Web Speech API,
-// resolving the "Cannot find name 'SpeechRecognition'" error.
+interface SpeechRecognitionStatic {
+    new(): SpeechRecognition;
+}
 interface SpeechRecognition {
     continuous: boolean;
     interimResults: boolean;
@@ -13,11 +15,15 @@ interface SpeechRecognition {
     stop: () => void;
 }
 
-// Polyfill for browsers that have webkitSpeechRecognition but not SpeechRecognition
-// Fix: Cast window to any to access vendor-prefixed properties and rename to avoid name collision with the SpeechRecognition type.
-const SpeechRecognitionAPI = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+const SpeechRecognitionAPI: SpeechRecognitionStatic | undefined = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
-export const useSpeech = () => {
+const languageLocaleMap: Record<Language, string> = {
+    en: 'en-US',
+    hi: 'hi-IN',
+    kn: 'kn-IN'
+};
+
+export const useSpeech = (language: Language) => {
     const [isListening, setIsListening] = useState(false);
     const [transcript, setTranscript] = useState('');
     const recognitionRef = useRef<SpeechRecognition | null>(null);
@@ -30,19 +36,17 @@ export const useSpeech = () => {
             return;
         }
 
-        const recognition = new SpeechRecognitionAPI();
+        const recognition = new SpeechRecognitionAPI!();
         recognition.continuous = true;
         recognition.interimResults = true;
-        recognition.lang = 'en-US';
+        recognition.lang = languageLocaleMap[language];
 
         recognition.onresult = (event) => {
-            let finalTranscript = '';
-            for (let i = event.resultIndex; i < event.results.length; ++i) {
-                if (event.results[i].isFinal) {
-                    finalTranscript += event.results[i][0].transcript;
-                }
-            }
-            setTranscript(finalTranscript);
+            const fullTranscript = Array.from(event.results)
+                .map((result: any) => result[0])
+                .map((result) => result.transcript)
+                .join('');
+            setTranscript(fullTranscript);
         };
         
         recognition.onend = () => {
@@ -57,16 +61,19 @@ export const useSpeech = () => {
         recognitionRef.current = recognition;
 
         return () => {
-            recognition.stop();
+            if (recognitionRef.current) {
+               recognitionRef.current.stop();
+            }
         };
-    }, [isSupported]);
+    }, [isSupported, language]);
 
     const startListening = useCallback(() => {
         if (isListening || !recognitionRef.current) return;
         setTranscript('');
+        recognitionRef.current.lang = languageLocaleMap[language];
         recognitionRef.current.start();
         setIsListening(true);
-    }, [isListening]);
+    }, [isListening, language]);
 
     const stopListening = useCallback(() => {
         if (!isListening || !recognitionRef.current) return;
@@ -77,15 +84,14 @@ export const useSpeech = () => {
     const speak = useCallback((text: string) => {
         if (!isSupported) return;
         
-        // Cancel any ongoing speech
         window.speechSynthesis.cancel();
         
         const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'en-US';
+        utterance.lang = languageLocaleMap[language];
         utterance.rate = 1;
         utterance.pitch = 1;
         window.speechSynthesis.speak(utterance);
-    }, [isSupported]);
+    }, [isSupported, language]);
     
     const cancelSpeech = useCallback(() => {
         if (!isSupported) return;

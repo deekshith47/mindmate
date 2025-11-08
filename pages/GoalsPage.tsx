@@ -1,43 +1,49 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { Goal } from '../types';
 import { PlusIcon } from '../components/icons/Icons';
+import { LanguageContext } from '../App';
+
+const getGoalTemplates = (t: (key: string) => string) => [
+    { title: t('goals.templates.mindfulness'), category: 'Mindfulness' },
+    { title: t('goals.templates.journaling'), category: 'Personal' },
+    { title: t('goals.templates.exercise'), category: 'Wellness' },
+    { title: t('goals.templates.sleep'), category: 'Wellness' },
+    { title: t('goals.templates.gratitude'), category: 'Mindfulness' },
+    { title: t('goals.templates.connect'), category: 'Social' },
+];
 
 interface GoalsPageProps {
     goals: Goal[];
-    onAddGoal: (goal: Omit<Goal, 'id' | 'progress'>) => void;
+    onAddGoal: (goal: Omit<Goal, 'id' | 'progress' | 'created_at'>) => void;
     onUpdateProgress: (id: string, newProgress: number) => void;
 }
 
-const goalTemplates = [
-    { title: 'Daily mindfulness', category: 'Mindfulness' },
-    { title: 'Daily journaling', category: 'Personal' },
-    { title: '30 minutes of exercise', category: 'Wellness' },
-    { title: 'Get 8 hours of sleep', category: 'Wellness' },
-    { title: 'Practice gratitude', category: 'Mindfulness' },
-    { title: 'Connect with a friend', category: 'Social' },
-];
-
 const GoalsPage: React.FC<GoalsPageProps> = ({ goals, onAddGoal, onUpdateProgress }) => {
+    const { t } = useContext(LanguageContext);
     const [customGoalTitle, setCustomGoalTitle] = useState('');
     const [showCustomInput, setShowCustomInput] = useState(false);
+    const goalTemplates = getGoalTemplates(t);
 
     const handleAddGoal = (title: string, category: Goal['category']) => {
         onAddGoal({ title, category });
     };
     
     const handleAddCustomGoal = () => {
-        if (customGoalTitle.trim() === '') return;
-        handleAddGoal(customGoalTitle, 'Personal');
+        const title = customGoalTitle.trim();
+        if (title === '') return;
+        
+        onAddGoal({ title, category: 'Personal' });
+
         setCustomGoalTitle('');
         setShowCustomInput(false);
     };
 
     return (
         <div className="space-y-8">
-            <h1 className="text-4xl font-bold">Your Goals</h1>
+            <h1 className="text-4xl font-bold">{t('goals.title')}</h1>
             
             <div className="bg-gray-800/50 p-6 rounded-2xl border border-gray-700/50">
-                <h2 className="text-xl font-semibold mb-4">Add a New Goal</h2>
+                <h2 className="text-xl font-semibold mb-4">{t('goals.addNew')}</h2>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
                     {goalTemplates.map(template => (
                         <button
@@ -56,20 +62,26 @@ const GoalsPage: React.FC<GoalsPageProps> = ({ goals, onAddGoal, onUpdateProgres
                             type="text"
                             value={customGoalTitle}
                             onChange={e => setCustomGoalTitle(e.target.value)}
-                            placeholder="Enter your custom goal..."
+                            placeholder={t('goals.customPlaceholder')}
                             className="flex-grow bg-gray-900/50 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
+                             onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    handleAddCustomGoal();
+                                }
+                            }}
                         />
-                        <button onClick={handleAddCustomGoal} className="px-4 py-2 rounded-lg bg-violet-600 hover:bg-violet-500">Add</button>
+                        <button onClick={handleAddCustomGoal} className="px-4 py-2 rounded-lg bg-violet-600 hover:bg-violet-500">{t('goals.addButton')}</button>
                     </div>
                 ) : (
                     <button onClick={() => setShowCustomInput(true)} className="w-full p-3 rounded-lg border-2 border-dashed border-gray-600 hover:bg-gray-700/50 text-gray-400">
-                        Create a Custom Goal
+                        {t('goals.createCustom')}
                     </button>
                 )}
             </div>
 
             <div className="space-y-4">
-                <h2 className="text-2xl font-bold">Active Goals</h2>
+                <h2 className="text-2xl font-bold">{t('goals.activeGoals')}</h2>
                  {goals.length > 0 ? (
                     goals.map(goal => (
                         <div key={goal.id} className="bg-gray-800/30 p-5 rounded-xl border border-gray-700/50">
@@ -82,12 +94,12 @@ const GoalsPage: React.FC<GoalsPageProps> = ({ goals, onAddGoal, onUpdateProgres
                                     <div className="bg-violet-500 h-2.5 rounded-full" style={{ width: `${goal.progress}%`, transition: 'width 0.5s ease-in-out' }}></div>
                                 </div>
                                 <span className="font-bold text-lg">{goal.progress}%</span>
-                                <button onClick={() => onUpdateProgress(goal.id!, goal.progress + 10)} className="px-2 py-1 rounded bg-gray-700 text-xs">+</button>
+                                {goal.id && <button onClick={() => onUpdateProgress(goal.id!, goal.progress + 10)} className="px-2 py-1 rounded bg-gray-700 text-xs">+</button>}
                             </div>
                         </div>
                     ))
                 ) : (
-                     <p className="text-gray-400">You haven't set any goals yet.</p>
+                     <p className="text-gray-400">{t('goals.noGoals')}</p>
                 )}
             </div>
         </div>

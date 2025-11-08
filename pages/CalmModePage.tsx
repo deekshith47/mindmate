@@ -1,24 +1,28 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useContext } from 'react';
 import { useSpeech } from '../hooks/useSpeech';
+import { LanguageContext } from '../App';
 
 type Exercise = '4-7-8' | 'Box' | 'Resonant' | 'PMR' | 'Visualization' | 'Scan';
 
-const exercises: Record<Exercise, { name: string; description: string }> = {
-    '4-7-8': { name: '4-7-8 Breathing', description: "Dr. Weil's technique to calm the nervous system." },
-    'Box': { name: 'Box Breathing', description: 'A Navy SEAL method for managing stress with 4-second intervals.' },
-    'Resonant': { name: 'Resonant Breathing', description: 'Breathe at 5-6 breaths/min to improve heart rate variability.' },
-    'PMR': { name: 'Progressive Muscle Relaxation', description: 'A guided 10-step process of tensing and relaxing muscle groups.' },
-    'Visualization': { name: 'Guided Visualization', description: 'Journey through 7 peaceful scenes to relax your mind.' },
-    'Scan': { name: 'Body Scan Meditation', description: 'An 18-part mindful awareness practice from head to toe.' },
-};
+const getExercises = (t: (key: string) => string): Record<Exercise, { name: string; description: string }> => ({
+    '4-7-8': { name: t('calm.exercises.478.name'), description: t('calm.exercises.478.desc') },
+    'Box': { name: t('calm.exercises.box.name'), description: t('calm.exercises.box.desc') },
+    'Resonant': { name: t('calm.exercises.resonant.name'), description: t('calm.exercises.resonant.desc') },
+    'PMR': { name: t('calm.exercises.pmr.name'), description: t('calm.exercises.pmr.desc') },
+    'Visualization': { name: t('calm.exercises.visualization.name'), description: t('calm.exercises.visualization.desc') },
+    'Scan': { name: t('calm.exercises.scan.name'), description: t('calm.exercises.scan.desc') },
+});
+
 
 const CalmModePage: React.FC = () => {
+    const { t } = useContext(LanguageContext);
     const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
+    const exercises = getExercises(t);
 
     return (
         <div className="space-y-8">
-            <h1 className="text-4xl font-bold">Calm Mode</h1>
-            <p className="text-gray-400">Choose an exercise to relax, refocus, and find your center. All exercises include voice guidance.</p>
+            <h1 className="text-4xl font-bold">{t('calm.title')}</h1>
+            <p className="text-gray-400">{t('calm.description')}</p>
             
             {selectedExercise ? (
                 <ExercisePlayer exercise={selectedExercise} onBack={() => setSelectedExercise(null)} />
@@ -41,60 +45,57 @@ const CalmModePage: React.FC = () => {
 };
 
 const ExercisePlayer: React.FC<{ exercise: Exercise; onBack: () => void }> = ({ exercise, onBack }) => {
-    const { speak, cancelSpeech } = useSpeech();
+    const { t, language } = useContext(LanguageContext);
+    const { speak, cancelSpeech } = useSpeech(language);
     const [status, setStatus] = useState<'idle' | 'running' | 'paused' | 'finished'>('idle');
     const [step, setStep] = useState(0);
     const [animationState, setAnimationState] = useState('paused');
-    // FIX: Pass an initial value of `null` to `useRef` to resolve the "Expected 1 arguments, but got 0" error.
     const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const exercises = getExercises(t);
 
     const getExerciseConfig = useCallback(() => {
-        // Define steps for each exercise
         switch (exercise) {
             case '4-7-8': return [
-                { text: "Breathe in for 4 seconds.", duration: 4000, anim: 'grow' },
-                { text: "Hold for 7 seconds.", duration: 7000, anim: 'hold' },
-                { text: "Breathe out for 8 seconds.", duration: 8000, anim: 'shrink' },
+                { text: t('calm.steps.breatheIn', { seconds: 4 }), duration: 4000, anim: 'grow' },
+                { text: t('calm.steps.hold', { seconds: 7 }), duration: 7000, anim: 'hold' },
+                { text: t('calm.steps.breatheOut', { seconds: 8 }), duration: 8000, anim: 'shrink' },
             ];
             case 'Box': return [
-                { text: "Breathe in for 4 seconds.", duration: 4000, anim: 'grow' },
-                { text: "Hold for 4 seconds.", duration: 4000, anim: 'hold' },
-                { text: "Breathe out for 4 seconds.", duration: 4000, anim: 'shrink' },
-                { text: "Hold for 4 seconds.", duration: 4000, anim: 'hold' },
+                { text: t('calm.steps.breatheIn', { seconds: 4 }), duration: 4000, anim: 'grow' },
+                { text: t('calm.steps.hold', { seconds: 4 }), duration: 4000, anim: 'hold' },
+                { text: t('calm.steps.breatheOut', { seconds: 4 }), duration: 4000, anim: 'shrink' },
+                { text: t('calm.steps.hold', { seconds: 4 }), duration: 4000, anim: 'hold' },
             ];
             case 'Resonant': return [
-                { text: "Breathe in for 5 seconds.", duration: 5000, anim: 'grow' },
-                { text: "Breathe out for 5 seconds.", duration: 5000, anim: 'shrink' },
+                { text: t('calm.steps.breatheIn', { seconds: 5 }), duration: 5000, anim: 'grow' },
+                { text: t('calm.steps.breatheOut', { seconds: 5 }), duration: 5000, anim: 'shrink' },
             ];
             case 'PMR': return [
                 { text: "Tense your feet.", duration: 5000, anim: 'hold' }, { text: "Release.", duration: 5000, anim: 'shrink' },
                 { text: "Tense your calves.", duration: 5000, anim: 'hold' }, { text: "Release.", duration: 5000, anim: 'shrink' },
                 { text: "Tense your thighs.", duration: 5000, anim: 'hold' }, { text: "Release.", duration: 5000, anim: 'shrink' },
-                // ... more steps
             ];
             case 'Visualization': return [
                 { text: "Picture a calm beach.", duration: 10000, anim: 'hold' },
                 { text: "Feel the warm sun.", duration: 10000, anim: 'hold' },
                 { text: "Hear the gentle waves.", duration: 10000, anim: 'hold' },
-                // ... more scenes
             ];
             case 'Scan': return [
                 { text: "Focus on your toes.", duration: 7000, anim: 'hold' },
                 { text: "Move to your feet.", duration: 7000, anim: 'hold' },
                 { text: "Sense your ankles.", duration: 7000, anim: 'hold' },
-                // ... more body parts
             ];
             default: return [];
         }
-    }, [exercise]);
+    }, [exercise, t]);
     
     const config = getExerciseConfig();
 
     const runStep = useCallback((currentStep: number) => {
-        if (currentStep >= config.length * 3) { // Run 3 cycles for breathing
+        if (currentStep >= config.length * 3) {
             setStatus('finished');
             setAnimationState('paused');
-            speak("Exercise complete. Well done.");
+            speak(t('calm.steps.complete'));
             return;
         }
 
@@ -106,11 +107,10 @@ const ExercisePlayer: React.FC<{ exercise: Exercise; onBack: () => void }> = ({ 
             setStep(currentStep + 1);
             runStep(currentStep + 1);
         }, currentConfig.duration);
-    }, [config, speak]);
+    }, [config, speak, t]);
 
     useEffect(() => {
         return () => {
-            // FIX: Pass the timer ID to clearTimeout. Calling it without an argument causes a runtime error.
             if (timerRef.current) {
                 clearTimeout(timerRef.current);
             }
@@ -121,7 +121,7 @@ const ExercisePlayer: React.FC<{ exercise: Exercise; onBack: () => void }> = ({ 
     const handleStart = () => {
         setStatus('running');
         setStep(0);
-        speak(`Starting ${exercises[exercise].name}. Get ready.`);
+        speak(`${t('calm.steps.starting')} ${exercises[exercise].name}. ${t('calm.steps.getReady')}.`);
         timerRef.current = setTimeout(() => runStep(0), 3000);
     };
 
@@ -157,14 +157,14 @@ const ExercisePlayer: React.FC<{ exercise: Exercise; onBack: () => void }> = ({ 
                 </div>
             )}
             
-            <p className="text-xl h-12 text-center text-white">{status === 'running' ? config[step % config.length]?.text : 'Ready when you are.'}</p>
+            <p className="text-xl h-12 text-center text-white">{status === 'running' ? config[step % config.length]?.text : t('calm.steps.ready')}</p>
             
             <div className="flex space-x-4 mt-8">
-                <button onClick={onBack} className="px-6 py-2 rounded-lg bg-gray-600 hover:bg-gray-500">Back</button>
+                <button onClick={onBack} className="px-6 py-2 rounded-lg bg-gray-600 hover:bg-gray-500">{t('calm.backButton')}</button>
                 {status !== 'running' ? (
-                    <button onClick={handleStart} className="px-6 py-2 rounded-lg bg-violet-600 hover:bg-violet-500">Start</button>
+                    <button onClick={handleStart} className="px-6 py-2 rounded-lg bg-violet-600 hover:bg-violet-500">{t('calm.startButton')}</button>
                 ) : (
-                    <button onClick={handleStop} className="px-6 py-2 rounded-lg bg-red-600 hover:bg-red-500">Stop</button>
+                    <button onClick={handleStop} className="px-6 py-2 rounded-lg bg-red-600 hover:bg-red-500">{t('calm.stopButton')}</button>
                 )}
             </div>
         </div>

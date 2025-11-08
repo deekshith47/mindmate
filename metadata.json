@@ -1,7 +1,8 @@
 {
-  "name": "MindMate",
+  "name": "Copy of MindMate",
   "description": "An emotion-aware student chatbot designed to provide support, journaling, relaxation exercises, and mood tracking. It features a dark-mode interface, voice integration, and personalized analytics to help students manage their mental well-being.",
   "requestFramePermissions": [
-    "microphone"
+    "microphone",
+    "camera"
   ]
 }

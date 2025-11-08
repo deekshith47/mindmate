@@ -1,15 +1,18 @@
 import React from 'react';
-import { Page, Emotion, JournalEntry, Goal, MoodEntry } from './types';
-import { ChartIcon, ChatBubbleIcon, BookOpenIcon, HeartIcon, CalendarIcon, AcademicCapIcon, CheckCircleIcon } from './components/icons/Icons';
+import { NavItemName, Page, Emotion, JournalEntry, Goal, MoodEntry } from './types';
+import { ChartIcon, ChatBubbleIcon, BookOpenIcon, HeartIcon, CalendarIcon, AcademicCapIcon, CheckCircleIcon, WaveformIcon, FaceSmileIcon, CameraIcon } from './components/icons/Icons';
 
-export const NAV_ITEMS: { name: Page; icon: React.FC<{className?: string}> }[] = [
-  { name: 'Chat', icon: ChatBubbleIcon },
-  { name: 'Dashboard', icon: ChartIcon },
-  { name: 'Journal', icon: BookOpenIcon },
-  { name: 'Calm Mode', icon: HeartIcon },
-  { name: 'Mood Tracker', icon: CalendarIcon },
-  { name: 'Resources', icon: AcademicCapIcon },
-  { name: 'Goals', icon: CheckCircleIcon },
+export const NAV_ITEMS: { name: NavItemName; icon: React.FC<{className?: string}>; tKey: string }[] = [
+  { name: 'Chat', icon: ChatBubbleIcon, tKey: 'nav.chat' },
+  { name: 'Dashboard', icon: ChartIcon, tKey: 'nav.dashboard' },
+  { name: 'Journal', icon: BookOpenIcon, tKey: 'nav.journal' },
+  { name: 'Calm Mode', icon: HeartIcon, tKey: 'nav.calmMode' },
+  { name: 'Mood Tracker', icon: CalendarIcon, tKey: 'nav.moodTracker' },
+  { name: 'Resources', icon: AcademicCapIcon, tKey: 'nav.resources' },
+  { name: 'Goals', icon: CheckCircleIcon, tKey: 'nav.goals' },
+  { name: 'Live Chat', icon: WaveformIcon, tKey: 'nav.liveChat' },
+  { name: 'Emotion Mirror', icon: FaceSmileIcon, tKey: 'nav.emotionMirror' },
+  { name: 'Camera', icon: CameraIcon, tKey: 'nav.camera' },
 ];
 
 export const EMOTION_COLORS: Record<Emotion, string> = {
